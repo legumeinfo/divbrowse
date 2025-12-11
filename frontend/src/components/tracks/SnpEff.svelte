@@ -44,7 +44,8 @@ function iconColor(position) {
 
     let hasNonsynonymousSubstitutions = false;
     snpeff_data.forEach(ann => {
-        if (ann.includes('missense_variant') || ann.includes('splice_region_variant') || ann.includes('intron_variant') ) {
+        //if (ann.includes('missense_variant') || ann.includes('splice_region_variant') || ann.includes('intron_variant') ) {
+        if (ann.includes('missense_variant') || ann.includes('splice_region_variant') {
             hasNonsynonymousSubstitutions = true;
         }
     });
