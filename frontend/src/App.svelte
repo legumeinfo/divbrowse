@@ -116,6 +116,47 @@ eventbus.on('metadata:loaded', metadata => {
 });
 
 
+function navigateToGene(geneId) {
+    // Use setTimeout to ensure dataframe is fully initialized
+    // (event fires before dataframe assignment in Controller.js:51-52)
+    setTimeout(() => {
+        try {
+            const df = controller.metadata.gff3._dataframe;
+            if (!df) {
+                console.warn('Gene data not available');
+                return;
+            }
+
+            const filtered = df.filter(row =>
+                row.get('ID') === geneId
+            );
+
+            const results = filtered.toCollection();
+
+            if (results.length === 0) {
+                console.warn(`Gene "${geneId}" not found in dataset`);
+                return;
+            }
+
+            const gene = results[0];
+
+            // Map chromosome from GFF3 to VCF format
+            const chromMap = controller.metadata.gff3.gff3_to_vcf_chromosome_mapping;
+            const vcfChrom = chromMap[gene.seqid];
+
+            if (!vcfChrom) {
+                console.warn(`Chromosome mapping not found for "${gene.seqid}"`);
+                return;
+            }
+
+            console.log(`Navigating to gene ${geneId} at ${vcfChrom}:${gene.start}`);
+            controller.goToChromosomeAndPosition(vcfChrom, gene.start);
+
+        } catch (error) {
+            console.error('Error navigating to gene:', error);
+        }
+    }, 0);
+}
 
 onMount(async () => {
     log('DivBrowse App mounted!');
@@ -124,10 +165,21 @@ onMount(async () => {
     //console.log(url);
     //console.log( url.searchParams.get('pos') );
 
+    // Parse URL query parameter for gene navigation
+    const urlParams = new URLSearchParams(window.location.search);
+    const geneParam = urlParams.get('gene');
+
     controller.setup({
         tracksRendererContainer: tracksRendererContainer,
         config: config
     });
+
+    // If gene parameter exists, set up auto-navigation after genes load
+    if (geneParam && geneParam.trim() !== '') {
+        eventbus.on('data:genes:loaded', () => {
+            navigateToGene(geneParam.trim());
+        });
+    }
 
     
    //let script = document.createElement('script');
