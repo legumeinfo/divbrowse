@@ -968,6 +968,26 @@ def create_app(filename_config_yaml="divbrowse.config.yml", config_runtime=None)
         r.headers["Content-Type"] = "application/json; charset=utf-8"
         return r
 
+    @app.route("/gene/<gene_id>", methods=["GET", "OPTIONS"])
+    def __gene_by_id(gene_id):
+        """Return a single gene's information by ID"""
+        try:
+            gene_df = ad.genes[ad.genes['ID'] == gene_id]
+            gene_data = gene_df.to_dict('records')[0]
+            return jsonify({
+                'status': 'success',
+                'gene': gene_data
+            }), 200
+        except Exception as e:
+            log.error(f"Error fetching gene {gene_id}: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({
+                'status': 'error',
+                'error': str(e),
+                'gene_id': gene_id
+            }), 500
+
     @app.route("/", methods=["GET", "POST", "OPTIONS"])
     def __home():
         """Return the Divbrowse server status"""

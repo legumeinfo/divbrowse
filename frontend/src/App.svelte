@@ -2,7 +2,7 @@
 export let config;
 export let appId;
 export let rootElem;
-
+import axios from 'axios';
 import { onMount, setContext } from 'svelte';
 //import Plotly from 'plotly.js-dist';
 
@@ -80,13 +80,17 @@ function onVisible(element, callback) {
 }
 
 
+let waitingForGeneLoad = false;
 
 eventbus.on('metadata:loaded', metadata => {
     log('Metadata loaded!');
 
-    onVisible(tracksRendererContainer, () => {
-        controller.draw();
-    });
+    // Only draw immediately if we're NOT waiting for a gene to load
+    if (!waitingForGeneLoad) {
+        onVisible(tracksRendererContainer, () => {
+            controller.draw();
+        });
+    }
 
 
     let resizeObserverStarted = false;
@@ -100,7 +104,7 @@ eventbus.on('metadata:loaded', metadata => {
 
             } else {
                 //console.log('ResizeObserver: invoked ('+appId+')');
-                
+
                 let containerWidth = entries[0].contentBoxSize[0].inlineSize;
                 if (containerWidth > 0) {
                     //console.log('ResizeObserver: controller.draw() called ('+appId+')');
@@ -115,49 +119,6 @@ eventbus.on('metadata:loaded', metadata => {
 
 });
 
-
-function navigateToGene(geneId) {
-    // Use setTimeout to ensure dataframe is fully initialized
-    // (event fires before dataframe assignment in Controller.js:51-52)
-    setTimeout(() => {
-        try {
-            const df = controller.metadata.gff3._dataframe;
-            if (!df) {
-                console.warn('Gene data not available');
-                return;
-            }
-
-            const filtered = df.filter(row =>
-                row.get('ID') === geneId
-            );
-
-            const results = filtered.toCollection();
-
-            if (results.length === 0) {
-                console.warn(`Gene "${geneId}" not found in dataset`);
-                return;
-            }
-
-            const gene = results[0];
-
-            // Map chromosome from GFF3 to VCF format
-            const chromMap = controller.metadata.gff3.gff3_to_vcf_chromosome_mapping;
-            const vcfChrom = chromMap[gene.seqid];
-
-            if (!vcfChrom) {
-                console.warn(`Chromosome mapping not found for "${gene.seqid}"`);
-                return;
-            }
-
-            console.log(`Navigating to gene ${geneId} at ${vcfChrom}:${gene.start}`);
-            controller.goToChromosomeAndPosition(vcfChrom, gene.start);
-
-        } catch (error) {
-            console.error('Error navigating to gene:', error);
-        }
-    }, 0);
-}
-
 onMount(async () => {
     log('DivBrowse App mounted!');
 
@@ -169,16 +130,52 @@ onMount(async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const geneParam = urlParams.get('gene');
 
+    // Helper to trigger the draw
+    const triggerDraw = () => {
+        onVisible(tracksRendererContainer, () => {
+            controller.draw();
+        });
+    };
+
+    // Helper to handle gene loading failure
+    const handleGeneLoadFailure = () => {
+        waitingForGeneLoad = false;
+        triggerDraw();
+    };
+
+    // Set flag if we're waiting for a gene to load
+    if (geneParam && geneParam.trim() !== '') {
+        waitingForGeneLoad = true;
+    }
+
     controller.setup({
         tracksRendererContainer: tracksRendererContainer,
         config: config
     });
 
-    // If gene parameter exists, set up auto-navigation after genes load
+    // If gene parameter exists, fetch it directly using dedicated endpoint
     if (geneParam && geneParam.trim() !== '') {
-        eventbus.on('data:genes:loaded', () => {
-            navigateToGene(geneParam.trim());
-        });
+        const handleMetadataLoaded = async () => {
+            try {
+                const geneId = geneParam.trim();
+                const response = await axios.get(`${config.apiBaseUrl}/gene/${geneId}`);
+                const gene = response.data.gene;
+                const chromMap = controller.metadata.gff3.gff3_to_vcf_chromosome_mapping;
+                const vcfChrom = chromMap[gene.seqid];
+
+                if (vcfChrom) {
+                    controller.goToChromosomeAndPosition(vcfChrom, gene.start);
+                    triggerDraw();
+                } else {
+                    console.warn(`Chromosome mapping not found for "${gene.seqid}"`);
+                    handleGeneLoadFailure();
+                }
+            } catch (error) {
+                console.warn(`Error when fetching ${geneParam}:`, error);
+                handleGeneLoadFailure();
+            }
+        };
+        eventbus.on('metadata:loaded', handleMetadataLoaded);
     }
 
     
