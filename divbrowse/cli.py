@@ -284,9 +284,9 @@ def start(host: str, port: str, infer_config: bool, save_config):
 
         hostname = socket.gethostname()
         local_ip_addr = socket.gethostbyname(hostname)
-        url = "http://" + local_ip_addr + ":" + str(port) + "/index.html"
+        url = f"http://{local_ip_addr}:{port}/"
     else:
-        url = "http://" + str(host) + ":" + str(port) + "/index.html"
+        url = f"http://{host}:{port}/"
 
     if infer_config:
         app = create_app(config_runtime=config_runtime)

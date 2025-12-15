@@ -990,8 +990,9 @@ def create_app(filename_config_yaml="divbrowse.config.yml", config_runtime=None)
 
     @app.route("/", methods=["GET", "POST", "OPTIONS"])
     def __home():
-        """Return the Divbrowse server status"""
-        return "Divbrowse server is running"
+        """Serve the index.html page"""
+        from flask import send_from_directory
+        return send_from_directory(app.static_folder, 'index.html')
 
     @app.errorhandler(ApiError)
     def handle_api_error(error):
