@@ -1,4 +1,3 @@
-from icecream import ic
 import os
 from timeit import default_timer as timer
 from types import SimpleNamespace

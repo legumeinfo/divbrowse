@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from icecream import ic
 import allel
 import numpy as np
 import pandas as pd
@@ -133,9 +132,7 @@ class VariantCallsSlice:
         start = timer()
         df_numbers_of_alternate_alleles = pd.DataFrame(self.numbers_of_alternate_alleles)
         ####np.save('_______testdata_numbers_of_alternate_alleles_______.npy', self.numbers_of_alternate_alleles)
-        #ic(df_numbers_of_alternate_alleles.shape)
         counts = df_numbers_of_alternate_alleles.apply(pd.Series.value_counts, axis=0, normalize=True).fillna(0)
-        #ic(counts.head())
         log.debug("//////////////////////// df_numbers_of_alternate_alleles.apply(pd.Series.value_counts) => %f", timer() - start)
 
         try:
@@ -144,7 +141,6 @@ class VariantCallsSlice:
             result['missing_freq'] = np.zeros(counts.columns.size).tolist()
 
         df_numbers_of_alternate_alleles_with_nan = df_numbers_of_alternate_alleles.replace(-1, np.nan)
-        #ic(df_numbers_of_alternate_alleles_with_nan.shape)
         counts_without_missing = df_numbers_of_alternate_alleles_with_nan.apply(pd.Series.value_counts, axis=0, normalize=True, dropna=True).fillna(0)
         counts_without_missing.index = counts_without_missing.index.astype(int, copy=False)
 
@@ -158,11 +154,8 @@ class VariantCallsSlice:
         #result['mean_pairwise_difference'] = allel.mean_pairwise_difference(ac).tolist()
 
         #pi = allel.sequence_diversity(self.positions, ac)
-        #ic(pi)
 
         #rogers_huff_r = allel.rogers_huff_r(self.numbers_of_alternate_alleles)
-        #ic(rogers_huff_r)
-        #ic(rogers_huff_r.shape)
 
         self.variants_summary_stats = result
 

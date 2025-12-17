@@ -1,6 +1,5 @@
 import math
 import numpy as np
-#from icecream import ic
 
 class BrapiVariants():
 
