@@ -1,67 +1,175 @@
-<img src="https://raw.githubusercontent.com/IPK-BIT/divbrowse/main/docs/source/images/divbrowse_logo.png" width="600">
-<br />
+# Divbrowse
+Fork with changes; [original README](./README.md) / [original source](https://github.com/IPK-BIT/divbrowse)
+
+## Quick Start
+First:
+1. Set up [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/main)
+2. Set up Node with [nvm](https://github.com/nvm-sh/nvm) and install latest LTS (`nvm install --lts`)
+
+### Installation
+```bash
+git clone https://github.com/legumeinfo/divbrowse
+cd divbrowse
+mkdir -p divbrowse/static
+conda env create -f environment.yml
+conda activate divbrowse_dev
+cd frontend
+npm i
+npm run build
+cp index.html ../divbrowse/static/.
+cp dist/divbrowse.js ../divbrowse/static/.
+cd ..
+pip install -e .
+```
+
+### Running
+Retrieve VCF and GFF:
+```bash
+wget https://data.legumeinfo.org/Glycine/max/diversity/Wm82.gnm4.div.Song_Hyten_2015/glyma.Wm82.gnm4.div.Song_Hyten_2015.vcf.gz
+wget https://data.legumeinfo.org/Glycine/max/annotations/Wm82.gnm4.ann1.T8TQ/glyma.Wm82.gnm4.ann1.T8TQ.gene_models_main.gff3.gz
+gzip -d glyma.Wm82.gnm4.ann1.T8TQ.gene_models_main.gff3.gz
+```
+
+Remove scaffolds, include only chromosomes:
+```bash
+tabix glyma.Wm82.gnm4.div.Song_Hyten_2015.vcf.gz
+tabix -l glyma.Wm82.gnm4.div.Song_Hyten_2015.vcf.gz | grep -E "glyma\\.Wm82\\.gnm4\\.Gm[0-9]+" > chromosomes.txt
+CHROMS=$(cat chromosomes.txt | tr '\n' ',' | sed 's/,$//')
+bcftools view -r "$CHROMS" glyma.Wm82.gnm4.div.Song_Hyten_2015.vcf.gz -Oz -o gnm4.vcf.gz
+```
+
+Create zarr:
+```bash
+divbrowse vcf2zarr --path-vcf gnm4.vcf.gz --path-zarr variants.zarr
+```
+
+Create `divbrowse.config.yml` in the same directory with the following contents:
+```yaml
+metadata:
+  general_description: 
+  vcf_doi: 
+  vcf_reference_genome_doi: 
+  gff3_doi: 
+
+datadir: ./
+
+variants:
+  zarr_dir: variants.zarr
+  sample_id_mapping_filename: 
+
+gff3:
+  filename: glyma.Wm82.gnm4.ann1.T8TQ.gene_models_main.gff3
+  additional_attributes_keys: biotype,gene_id
+  feature_type_with_description: gene
+  count_exon_variants: false
+  key_confidence: false
+  key_ontology: Ontology_term
+  main_feature_types_for_genes_track: 
+    - gene
+  external_link_ontology_term: https://www.ebi.ac.uk/QuickGO/term/{ID}
+  external_links:
+
+features:
+  pca: true
+  umap: true
+
+chromosome_labels:
+  "glyma.Wm82.gnm4.Gm01": "chr1"
+  "glyma.Wm82.gnm4.Gm02": "chr2"
+  "glyma.Wm82.gnm4.Gm03": "chr3"
+  "glyma.Wm82.gnm4.Gm04": "chr4"
+  "glyma.Wm82.gnm4.Gm05": "chr5"
+  "glyma.Wm82.gnm4.Gm06": "chr6"
+  "glyma.Wm82.gnm4.Gm07": "chr7"
+  "glyma.Wm82.gnm4.Gm08": "chr8"
+  "glyma.Wm82.gnm4.Gm09": "chr9"
+  "glyma.Wm82.gnm4.Gm10": "chr10"
+  "glyma.Wm82.gnm4.Gm11": "chr11"
+  "glyma.Wm82.gnm4.Gm12": "chr12"
+  "glyma.Wm82.gnm4.Gm13": "chr13"
+  "glyma.Wm82.gnm4.Gm14": "chr14"
+  "glyma.Wm82.gnm4.Gm15": "chr15"
+  "glyma.Wm82.gnm4.Gm16": "chr16"
+  "glyma.Wm82.gnm4.Gm17": "chr17"
+  "glyma.Wm82.gnm4.Gm18": "chr18"
+  "glyma.Wm82.gnm4.Gm19": "chr19"
+  "glyma.Wm82.gnm4.Gm20": "chr20"
+
+gff3_chromosome_labels:
+  "glyma.Wm82.gnm4.Gm01": "glyma.Wm82.gnm4.Gm01"
+  "glyma.Wm82.gnm4.Gm02": "glyma.Wm82.gnm4.Gm02"
+  "glyma.Wm82.gnm4.Gm03": "glyma.Wm82.gnm4.Gm03"
+  "glyma.Wm82.gnm4.Gm04": "glyma.Wm82.gnm4.Gm04"
+  "glyma.Wm82.gnm4.Gm05": "glyma.Wm82.gnm4.Gm05"
+  "glyma.Wm82.gnm4.Gm06": "glyma.Wm82.gnm4.Gm06"
+  "glyma.Wm82.gnm4.Gm07": "glyma.Wm82.gnm4.Gm07"
+  "glyma.Wm82.gnm4.Gm08": "glyma.Wm82.gnm4.Gm08"
+  "glyma.Wm82.gnm4.Gm09": "glyma.Wm82.gnm4.Gm09"
+  "glyma.Wm82.gnm4.Gm10": "glyma.Wm82.gnm4.Gm10"
+  "glyma.Wm82.gnm4.Gm11": "glyma.Wm82.gnm4.Gm11"
+  "glyma.Wm82.gnm4.Gm12": "glyma.Wm82.gnm4.Gm12"
+  "glyma.Wm82.gnm4.Gm13": "glyma.Wm82.gnm4.Gm13"
+  "glyma.Wm82.gnm4.Gm14": "glyma.Wm82.gnm4.Gm14"
+  "glyma.Wm82.gnm4.Gm15": "glyma.Wm82.gnm4.Gm15"
+  "glyma.Wm82.gnm4.Gm16": "glyma.Wm82.gnm4.Gm16"
+  "glyma.Wm82.gnm4.Gm17": "glyma.Wm82.gnm4.Gm17"
+  "glyma.Wm82.gnm4.Gm18": "glyma.Wm82.gnm4.Gm18"
+  "glyma.Wm82.gnm4.Gm19": "glyma.Wm82.gnm4.Gm19"
+  "glyma.Wm82.gnm4.Gm20": "glyma.Wm82.gnm4.Gm20"
+
+centromeres_positions:
+  "glyma.Wm82.gnm4.Gm01": 0
+  "glyma.Wm82.gnm4.Gm02": 0
+  "glyma.Wm82.gnm4.Gm03": 0
+  "glyma.Wm82.gnm4.Gm04": 0
+  "glyma.Wm82.gnm4.Gm05": 0
+  "glyma.Wm82.gnm4.Gm06": 0
+  "glyma.Wm82.gnm4.Gm07": 0
+  "glyma.Wm82.gnm4.Gm08": 0
+  "glyma.Wm82.gnm4.Gm09": 0
+  "glyma.Wm82.gnm4.Gm10": 0
+  "glyma.Wm82.gnm4.Gm11": 0
+  "glyma.Wm82.gnm4.Gm12": 0
+  "glyma.Wm82.gnm4.Gm13": 0
+  "glyma.Wm82.gnm4.Gm14": 0
+  "glyma.Wm82.gnm4.Gm15": 0
+  "glyma.Wm82.gnm4.Gm16": 0
+  "glyma.Wm82.gnm4.Gm17": 0
+  "glyma.Wm82.gnm4.Gm18": 0
+  "glyma.Wm82.gnm4.Gm19": 0
+  "glyma.Wm82.gnm4.Gm20": 0
+
+blast:
+  active: false
+  galaxy_server_url:
+  galaxy_apikey:
+  galaxy_user:
+  galaxy_pass:
+  blastn:
+    galaxy_tool_id:
+    blast_database:
+    blast_type:
+  tblastn:
+    galaxy_tool_id:
+    blast_database:
+    blast_type:
+  blast_result_to_vcf_chromosome_mapping:
 
 
+brapi:
+  active: false
+  commoncropname: 
+  serverinfo:
+    server_name: 
+    server_description: 
+    organization_name: 
+    organization_url: 
+    location: 
+    contact_email: 
+    documentation_url: 
+```
 
-[![PyPI](https://img.shields.io/pypi/v/divbrowse?color=blue&label=PyPI.org)](https://pypi.org/project/divbrowse/)
-[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/ipkbit/divbrowse?color=blue&label=DockerHub)](https://hub.docker.com/r/ipkbit/divbrowse)
-![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/IPK-BIT/divbrowse?color=blue&label=Github)
-
-[![Peer-reviewed paper in GigaScience Journal](https://img.shields.io/badge/DOI-10.1093%2Fgigascience%2Fgiad025-yellow)](https://doi.org/10.1093/gigascience/giad025)
-
-
-[![Documentation Status](https://readthedocs.org/projects/divbrowse/badge/?version=latest)](https://divbrowse.readthedocs.io/?badge=latest)
-[![Python](https://img.shields.io/pypi/pyversions/divbrowse.svg?color=green)](https://badge.fury.io/py/divbrowse)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/divbrowse.svg?label=PyPI%20downloads)](https://pypi.org/project/divbrowse/)
-[![Libraries.io dependency status for latest release](https://img.shields.io/librariesio/release/pypi/divbrowse)](https://libraries.io/pypi/divbrowse)
-![License](https://img.shields.io/github/license/IPK-BIT/divbrowse)
-
-<br />
-
-**Website:** https://divbrowse.ipk-gatersleben.de   
-**Documentation:** https://divbrowse.readthedocs.io   
-**Paper:** https://doi.org/10.1093/gigascience/giad025   
-
-<hr />
-
-**Table of contents:**
-- [About DivBrowse](#about-divbrowse)
-- [Installation](#installation)
-- [Try out DivBrowse](#try-out-divbrowse)
-- [Screenshots](#screenshots)
-- [Usage workflow concept](#usage-workflow-concept)
-- [Architecture](#architecture)
-
-<br />
-
-## About DivBrowse
-
-DivBrowse is a web application for interactive exploration and analysis of very large SNP matrices.
-
-It offers a novel approach for interactive visualization and analysis of genomic diversity data and optionally also gene annotation data. The use of standard file formats for data input supports interoperability and seamless deployment of application instances based on established bioinformatics pipelines. The possible integration into 3rd-party web applications supports interoperability and reusability.
-
-The integrated ad-hoc calculation of variant summary statistics and principal component analysis enables the user to perform interactive analysis of population structure for single genetic features like genes, exons and promoter regions. Data interoperability is achieved by the possibility to export genomic diversity data for genomic regions of interest in standardized VCF files.
-
-## Installation
-
-The installation via pip or container images is described in the documentation: https://divbrowse.readthedocs.io/en/stable/installation.html
-
-## Try out DivBrowse
-
-If you want to test DivBrowse please visit the demo instances listed here:
-https://divbrowse.ipk-gatersleben.de/#demo-instances
-
-
-## Screenshots
-
-![DivBrowse GUI](https://github.com/IPK-BIT/divbrowse/blob/main/docs/source/images/divbrowse_main_gui_screenshot.png?raw=true)
-
-
-## Usage workflow concept
-
-![Usage workflow concept](https://github.com/IPK-BIT/divbrowse/blob/main/docs/source/images/paper_figures_usage_concept.png?raw=true)
-
-
-## Architecture
-
-![Architecture](https://github.com/IPK-BIT/divbrowse/blob/main/docs/source/images/paper_figures_general_architecture.png?raw=true)
+Run:
+```bash
+divbrowse start
+```
