@@ -130,3 +130,6 @@ dist
 *.njsproj
 *.sln
 *.sw?
+
+divbrowse/__pycache__/
+divbrowse/lib/__pycache__/
