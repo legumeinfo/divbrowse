@@ -1,5 +1,5 @@
 # Divbrowse
-Fork with changes; [original README](./README.md) / [original source](https://github.com/IPK-BIT/divbrowse)
+Fork with changes; [original README](./README.original.md) / [original source](https://github.com/IPK-BIT/divbrowse)
 
 ## Quick Start
 First:
