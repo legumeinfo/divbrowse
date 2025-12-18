@@ -3,7 +3,7 @@ export let data;
 
 import { onMount, getContext } from 'svelte';
 const context = getContext('app');
-let { appId, eventbus } = context.app();
+let { appId, eventbus, controller } = context.app();
 
 const rootElem = getContext('rootElem');
 
@@ -42,20 +42,57 @@ function iconColor(position) {
         snpeff_data = [snpeff_data];
     }
 
-    let hasNonsynonymousSubstitutions = false;
-    snpeff_data.forEach(ann => {
-        //if (ann.includes('missense_variant') || ann.includes('splice_region_variant') || ann.includes('intron_variant') ) {
-        if (ann.includes('missense_variant') || ann.includes('splice_region_variant')) {
-            hasNonsynonymousSubstitutions = true;
-        }
-    });
+    const snpeffConfig = controller?.metadata?.snpeff;
+    const defaultColor = snpeffConfig?.default_color || 'rgb(165,165,165)';
 
-    let color = 'rgb(165,165,165)';
-    if (hasNonsynonymousSubstitutions) {
-        color = 'rgb(255,35,25)';
+    // If no config, use previous coloring logic
+    if (!snpeffConfig || !snpeffConfig.coloring) {
+        let hasNonsynonymousSubstitutions = false;
+        snpeff_data.forEach(ann => {
+            if (ann.includes('missense_variant') || ann.includes('splice_region_variant')) {
+                hasNonsynonymousSubstitutions = true;
+            }
+        });
+        return hasNonsynonymousSubstitutions ? 'rgb(255,35,25)' : 'rgb(165,165,165)';
     }
 
-    return color;
+    for (const ann of snpeff_data) {
+        if (typeof ann !== 'string' || ann === '') continue;
+
+        // Parse pipe-delimited annotation
+        const fields = ann.split('|');
+        const annotation = fields[1]?.toLowerCase() || '';
+        const annotation_impact = fields[2]?.toLowerCase() || '';
+
+        // Check each coloring rule in order, selecting the first
+        for (const rule of snpeffConfig.coloring) {
+            let matches = false;
+
+            if (rule.by?.annotation) {
+                for (const value of rule.by.annotation) {
+                    if (annotation.includes(value.toLowerCase())) {
+                        matches = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!matches && rule.by?.annotation_impact) {
+                for (const value of rule.by.annotation_impact) {
+                    if (annotation_impact.includes(value.toLowerCase())) {
+                        matches = true;
+                        break;
+                    }
+                }
+            }
+
+            if (matches) {
+                return rule.color;
+            }
+        }
+    }
+
+    return defaultColor;
 }
 
 

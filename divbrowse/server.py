@@ -945,6 +945,7 @@ def create_app(filename_config_yaml="divbrowse.config.yml", config_runtime=None)
             "gff3": ad.metadata_gff3,
             "features": features,
             "dataset_descriptions": dict(config["metadata"]),
+            "snpeff": config.get("snpeff", {}),
         }
 
         return jsonify(result)
