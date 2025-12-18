@@ -133,3 +133,4 @@ dist
 
 divbrowse/__pycache__/
 divbrowse/lib/__pycache__/
+*.pyc
