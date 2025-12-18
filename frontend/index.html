@@ -21,7 +21,7 @@
 
   <body>
     <div id="divbrowse-container"></div>
-    <script type="module" src="/divbrowse.js"></script>
+    <script type="module" src="divbrowse.js"></script>
 
     <script>
 
@@ -45,7 +45,7 @@
 
         document.addEventListener("DOMContentLoaded", function(event) {
             const config = {
-                apiBaseUrl: 'http://localhost:8080',
+                apiBaseUrl: `${location.protocol}//${location.host}/`,
                 //apiBaseUrl: 'https://divbrowse.ipk-gatersleben.de/bridge_all_samples_morex_v3',
                 //apiBaseUrl: 'https://divbrowse.ipk-gatersleben.de/shape_core1000_and_cultivars',
                 //apiBaseUrl: 'https://divbrowse.ipk-gatersleben.de/1000g_human/',
