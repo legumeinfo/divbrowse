@@ -54,6 +54,125 @@ if (Array.isArray(controller.metadata.gff3.external_links) && controller.metadat
 }
 
 
+// Dynamic gene linkouts fetched from microservices
+let dynamicGeneLinkouts = [];
+let geneLinkoutsFetching = false;
+let geneLinkoutsError = null;
+
+async function fetchDynamicGeneLinkouts() {
+    // Check if linkouts.gene is configured
+    if (!controller.metadata.linkouts?.gene || !Array.isArray(controller.metadata.linkouts.gene)) {
+        return;
+    }
+
+    geneLinkoutsFetching = true;
+    geneLinkoutsError = null;
+
+    try {
+        // Fetch from each configured linkout service
+        const fetchPromises = controller.metadata.linkouts.gene.map(async (urlTemplate) => {
+            // Construct URL with gene ID parameter
+            const url = `${urlTemplate}?genes=${result.ID}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    console.warn(`Failed to fetch gene linkouts from ${url}: ${response.status}`);
+                    return [];
+                }
+
+                const links = await response.json();
+
+                // Validate response is an array
+                if (!Array.isArray(links)) {
+                    console.warn(`Invalid gene linkouts response from ${url}: expected array`);
+                    return [];
+                }
+
+                // Transform to our internal format and validate structure
+                return links.filter(link => link.href && link.text).map(link => ({
+                    url: link.href,
+                    text: link.text,
+                    method: link.method || 'GET'
+                }));
+            } catch (err) {
+                console.warn(`Error fetching gene linkouts from ${url}:`, err);
+                return [];
+            }
+        });
+
+        const results = await Promise.all(fetchPromises);
+        dynamicGeneLinkouts = results.flat();
+    } catch (err) {
+        console.error('Error fetching dynamic gene linkouts:', err);
+        geneLinkoutsError = 'Failed to load some gene resources';
+    } finally {
+        geneLinkoutsFetching = false;
+    }
+}
+
+// Dynamic genomic region linkouts fetched from microservices
+let dynamicRegionLinkouts = [];
+let regionLinkoutsFetching = false;
+let regionLinkoutsError = null;
+
+async function fetchDynamicRegionLinkouts() {
+    // Check if linkouts.genomic_region is configured
+    if (!controller.metadata.linkouts?.genomic_region || !Array.isArray(controller.metadata.linkouts.genomic_region)) {
+        return;
+    }
+
+    regionLinkoutsFetching = true;
+    regionLinkoutsError = null;
+
+    try {
+        // Fetch from each configured linkout service
+        const fetchPromises = controller.metadata.linkouts.genomic_region.map(async (urlTemplate) => {
+            // Construct URL with genomic region parameters in format: geneID:start-end
+            const url = `${urlTemplate}?genomic_regions=${result.seqid}:${result.start}-${result.end}`;
+
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    console.warn(`Failed to fetch region linkouts from ${url}: ${response.status}`);
+                    return [];
+                }
+
+                const links = await response.json();
+
+                // Validate response is an array
+                if (!Array.isArray(links)) {
+                    console.warn(`Invalid region linkouts response from ${url}: expected array`);
+                    return [];
+                }
+
+                // Transform to our internal format and validate structure
+                return links.filter(link => link.href && link.text).map(link => ({
+                    url: link.href,
+                    text: link.text,
+                    method: link.method || 'GET'
+                }));
+            } catch (err) {
+                console.warn(`Error fetching region linkouts from ${url}:`, err);
+                return [];
+            }
+        });
+
+        const results = await Promise.all(fetchPromises);
+        dynamicRegionLinkouts = results.flat();
+    } catch (err) {
+        console.error('Error fetching dynamic region linkouts:', err);
+        regionLinkoutsError = 'Failed to load some region resources';
+    } finally {
+        regionLinkoutsFetching = false;
+    }
+}
+
+// Fetch dynamic linkouts when component mounts
+fetchDynamicGeneLinkouts();
+fetchDynamicRegionLinkouts();
+
+
 </script> 
  
 
@@ -128,6 +247,42 @@ if (Array.isArray(controller.metadata.gff3.external_links) && controller.metadat
         <a target="_blank" href="{link.url}">{link.text}</a><br />
         {/each}
         </p>
+    </div>
+    {/if}
+
+    {#if dynamicGeneLinkouts.length > 0 || geneLinkoutsFetching}
+    <div class="links">
+        <p style="margin-bottom: 5px;"><strong>Gene Resources</strong></p>
+        {#if geneLinkoutsFetching}
+        <p style="color: #666; font-style: italic;">Loading gene resources...</p>
+        {:else}
+        <p>
+        {#each dynamicGeneLinkouts as link}
+        <a target="_blank" href="{link.url}">{link.text}</a><br />
+        {/each}
+        </p>
+        {/if}
+        {#if geneLinkoutsError}
+        <p style="color: #c00; font-size: 90%;">{geneLinkoutsError}</p>
+        {/if}
+    </div>
+    {/if}
+
+    {#if dynamicRegionLinkouts.length > 0 || regionLinkoutsFetching}
+    <div class="links">
+        <p style="margin-bottom: 5px;"><strong>Genomic Region Resources</strong></p>
+        {#if regionLinkoutsFetching}
+        <p style="color: #666; font-style: italic;">Loading region resources...</p>
+        {:else}
+        <p>
+        {#each dynamicRegionLinkouts as link}
+        <a target="_blank" href="{link.url}">{link.text}</a><br />
+        {/each}
+        </p>
+        {/if}
+        {#if regionLinkoutsError}
+        <p style="color: #c00; font-size: 90%;">{regionLinkoutsError}</p>
+        {/if}
     </div>
     {/if}
 
