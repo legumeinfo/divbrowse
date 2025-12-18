@@ -68,8 +68,8 @@ function iconColor(position) {
         for (const rule of snpeffConfig.coloring) {
             let matches = false;
 
-            if (rule.by?.annotation) {
-                for (const value of rule.by.annotation) {
+            if (rule.annotation) {
+                for (const value of rule.annotation) {
                     if (annotation.includes(value.toLowerCase())) {
                         matches = true;
                         break;
@@ -77,8 +77,8 @@ function iconColor(position) {
                 }
             }
 
-            if (!matches && rule.by?.annotation_impact) {
-                for (const value of rule.by.annotation_impact) {
+            if (!matches && rule.annotation_impact) {
+                for (const value of rule.annotation_impact) {
                     if (annotation_impact.includes(value.toLowerCase())) {
                         matches = true;
                         break;
