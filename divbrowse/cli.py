@@ -143,6 +143,7 @@ def vcf2zarr(path_vcf: str, path_zarr: str):
             group="/",
             fields="*",
             exclude_fields=["variants/numalt", "variants/altlen", "variants/is_snp"],
+            numbers={'ANN': 25},  # Store up to 25 SnpEff annotations per variant
             log=sys.stdout,
             compressor=numcodecs.Blosc(cname="zstd", clevel=5, shuffle=False),
         )
@@ -220,6 +221,7 @@ def start(host: str, port: str, infer_config: bool, save_config):
                 path_zarr,
                 group="/",
                 fields="*",
+                numbers={'ANN': 25},  # Store up to 25 SnpEff annotations per variant
                 log=sys.stdout,
                 compressor=numcodecs.Blosc(cname="zstd", clevel=5, shuffle=False),
             )  # cname='zstd'
