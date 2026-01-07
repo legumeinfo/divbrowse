@@ -56,6 +56,11 @@ function iconColor(position) {
         return hasNonsynonymousSubstitutions ? 'rgb(255,35,25)' : 'rgb(165,165,165)';
     }
 
+    // Track the highest priority match across all annotations
+    let highestPriority = -Infinity;
+    let highestPriorityColor = null;
+
+    // Check all annotations against all rules
     for (const ann of snpeff_data) {
         if (typeof ann !== 'string' || ann === '') continue;
 
@@ -64,7 +69,7 @@ function iconColor(position) {
         const annotation = fields[1]?.toLowerCase() || '';
         const annotation_impact = fields[2]?.toLowerCase() || '';
 
-        // Check each coloring rule in order, selecting the first
+        // Check each coloring rule
         for (const rule of snpeffConfig.coloring) {
             let matches = false;
 
@@ -86,13 +91,19 @@ function iconColor(position) {
                 }
             }
 
+            // If this rule matches and has higher priority, update tracking
             if (matches) {
-                return rule.color;
+                const rulePriority = rule.priority || 0;
+                if (rulePriority > highestPriority) {
+                    highestPriority = rulePriority;
+                    highestPriorityColor = rule.color;
+                }
             }
         }
     }
 
-    return defaultColor;
+    // Return the highest priority color found, or default
+    return highestPriorityColor !== null ? highestPriorityColor : defaultColor;
 }
 
 
