@@ -3,7 +3,7 @@ __version__ = "0.1.0"
 import simplejson as json
 from timeit import default_timer as timer
 
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, jsonify, request, render_template
 
 import allel
 import numpy as np
@@ -993,8 +993,8 @@ def create_app(filename_config_yaml="divbrowse.config.yml", config_runtime=None)
     @app.route("/", methods=["GET", "POST", "OPTIONS"])
     def __home():
         """Serve the index.html page"""
-        from flask import send_from_directory
-        return send_from_directory(app.static_folder, 'index.html')
+        base_url = config.get('base_url', None)
+        return render_template('index.html', base_url=base_url)
 
     @app.errorhandler(ApiError)
     def handle_api_error(error):
