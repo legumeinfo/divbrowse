@@ -6,6 +6,9 @@ First:
 1. Set up [miniconda](https://www.anaconda.com/docs/getting-started/miniconda/main)
 2. Set up Node with [nvm](https://github.com/nvm-sh/nvm) and install latest LTS (`nvm install --lts`)
 
+### Snp50k
+Please see the [setup.sh](./setup.sh) helper script.
+
 ### Installation
 ```bash
 git clone https://github.com/legumeinfo/divbrowse
@@ -16,7 +19,6 @@ conda activate divbrowse_dev
 cd frontend
 npm i
 npm run build
-cp index.html ../divbrowse/static/.
 cp dist/divbrowse.js ../divbrowse/static/.
 cd ..
 pip install -e .
