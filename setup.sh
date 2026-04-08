@@ -6,6 +6,7 @@
 #   VCF_URL       - URL to download VCF file (required)
 #   GFF3_URL      - URL to download GFF3 file (required)
 #   CHROM_PATTERN - Regex to filter chromosomes (optional)
+#   BASE_URL      - Base URL for the Divbrowse instance (optional)
 #
 # Example:
 #   VCF_URL="https://example.com/variants.vcf.gz" \
@@ -92,6 +93,7 @@ divbrowse vcf2zarr --path-vcf variants.vcf.gz --path-zarr variants.zarr
 # Generate chromosome labels from the Zarr
 echo "Generating configuration..."
 python3 << 'PYSCRIPT'
+import os
 import zarr
 import yaml
 
@@ -111,6 +113,7 @@ config = {
         'gff3_doi': '',
     },
     'datadir': './',
+    'base_url': os.environ.get('BASE_URL', ''),
     'variants': {
         'zarr_dir': 'variants.zarr',
         'sample_id_mapping_filename': '',

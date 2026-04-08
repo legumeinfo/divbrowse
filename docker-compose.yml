@@ -19,6 +19,7 @@ services:
       - VCF_URL=https://data.legumeinfo.org/Glycine/max/diversity/Wm82.gnm4.div.Song_Hyten_2015/glyma.Wm82.gnm4.div.Song_Hyten_2015.vcf.gz
       - GFF3_URL=https://data.legumeinfo.org/Glycine/max/annotations/Wm82.gnm4.ann1.T8TQ/glyma.Wm82.gnm4.ann1.T8TQ.gene_models_main.gff3.gz
       - CHROM_PATTERN=glyma\.Wm82\.gnm4\.Gm[0-9]+
+      - BASE_URL=https://divbrowse.soybase.org/Wm82.gnm4.div.Song_Hyten_2015/
     ports:
       - "8080:8080"
     volumes:
@@ -33,6 +34,7 @@ services:
       - VCF_URL=https://data.legumeinfo.org/Glycine/max/diversity/Wm82.gnm5.div.Song_Hyten_2015/glyma.Wm82.gnm5.div.Song_Hyten_2015.vcf.gz
       - GFF3_URL=https://data.legumeinfo.org/Glycine/max/annotations/Wm82.gnm5.ann1.J7HW/glyma.Wm82.gnm5.ann1.J7HW.gene_models_main.gff3.gz
       - CHROM_PATTERN=glyma\.Wm82\.gnm5\.Chr[0-9]+
+      - BASE_URL=https://divbrowse.soybase.org/Wm82.gnm5.div.Song_Hyten_2015/
     ports:
       - "8081:8080"
     volumes:
@@ -47,6 +49,7 @@ services:
       - VCF_URL=https://data.legumeinfo.org/Glycine/max/diversity/Wm82.gnm6.div.Song_Hyten_2015/glyma.Wm82.gnm6.div.Song_Hyten_2015.vcf.gz
       - GFF3_URL=https://data.legumeinfo.org/Glycine/max/annotations/Wm82.gnm6.ann1.PKSW/glyma.Wm82.gnm6.ann1.PKSW.gene_models_main.gff3.gz
       - CHROM_PATTERN=glyma\.Wm82\.gnm6\.Gm[0-9]+
+      - BASE_URL=https://divbrowse.soybase.org/Wm82.gnm6.div.Song_Hyten_2015/
     ports:
       - "8082:8080"
     volumes:
