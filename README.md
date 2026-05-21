@@ -10,6 +10,11 @@ First:
 Please see the [setup.sh](./setup.sh) helper script.
 
 ### Installation
+> [!NOTE]
+> The steps below are for local (non-Docker) development. The Docker image builds
+> the frontend automatically (see [Dockerfile](./Dockerfile)), so these manual
+> `npm`/`cp` steps are not needed when running via Docker.
+
 ```bash
 git clone https://github.com/legumeinfo/divbrowse
 cd divbrowse
@@ -17,7 +22,7 @@ mkdir -p divbrowse/static
 conda env create -f environment.yml
 conda activate divbrowse_dev
 cd frontend
-npm i
+npm ci
 npm run build
 cp dist/divbrowse.js ../divbrowse/static/.
 cd ..

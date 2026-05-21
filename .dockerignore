@@ -35,9 +35,11 @@ build/
 htmlcov/
 .tox/
 
-# Frontend build artifacts (we want divbrowse/static, but not frontend/node_modules)
+# Frontend build artifacts (the image builds these fresh in stage 1)
 frontend/node_modules/
 frontend/.vite/
+frontend/dist/
+divbrowse/static/
 
 # Local data directories
 data/

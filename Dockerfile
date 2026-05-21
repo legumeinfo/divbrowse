@@ -1,3 +1,12 @@
+# Stage 1: build the Svelte/Vite frontend (produces divbrowse.js)
+FROM node:22-slim AS frontend-builder
+WORKDIR /frontend
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
+# Stage 2: Python/conda runtime
 FROM condaforge/mambaforge:latest
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -24,6 +33,10 @@ SHELL ["mamba", "run", "-n", "divbrowse_dev", "/bin/bash", "-c"]
 COPY divbrowse/ /app/divbrowse/
 COPY pyproject.toml /app/
 COPY README.md /app/
+
+# Drop in the frontend bundle built in stage 1 (served from divbrowse/static)
+RUN mkdir -p /app/divbrowse/static
+COPY --from=frontend-builder /frontend/dist/divbrowse.js /app/divbrowse/static/divbrowse.js
 
 # Install the divbrowse package (deps already installed via conda)
 RUN pip install --no-deps -e .
