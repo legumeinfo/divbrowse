@@ -48,7 +48,8 @@
                 {% if base_url %}
                 apiBaseUrl: '{{ base_url }}',
                 {% else %}
-                apiBaseUrl: `${location.protocol}//${location.host}/`,
+                // Resolve relative to the page so it works behind a path prefix
+                apiBaseUrl: new URL('.', location.href).href.replace(/\/$/, ''),
                 {% endif %}
                 //showAllSamplesOnInit: false,
                 allowPca: true,

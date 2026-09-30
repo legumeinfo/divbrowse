@@ -1,0 +1,26 @@
+# Traefik static configuration (changes require restarting the proxy)
+
+entryPoints:
+  web:
+    address: ":80"
+    http:
+      # Applied to every router: redirect /<dataset> to /<dataset>/, then
+      # strip the /<dataset> prefix before proxying to the Divbrowse container
+      middlewares:
+        - add-trailing-slash@file
+        - strip-dataset-prefix@file
+
+providers:
+  # Divbrowse containers register themselves via two labels:
+  #   divbrowse.host - public hostname, e.g. divbrowse.soybase.org
+  #   divbrowse.path - dataset path segment, e.g. Wm82.gnm6.div.Song_Hyten_2015
+  docker:
+    exposedByDefault: true
+    constraints: 'LabelRegex(`divbrowse.path`, `.+`)'
+    defaultRule: 'Host(`{{ index .Labels "divbrowse.host" }}`) && (Path(`/{{ index .Labels "divbrowse.path" }}`) || PathPrefix(`/{{ index .Labels "divbrowse.path" }}/`))'
+  # Shared middlewares and per-host root redirects (reloaded on change)
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
+
+accessLog: {}

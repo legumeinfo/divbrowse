@@ -4,9 +4,12 @@
 #
 # Environment variables:
 #   VCF_URL       - URL to download VCF file (required)
-#   GFF3_URL      - URL to download GFF3 file (required)
+#   GFF3_URL      - URL to download GFF3 file (required); may be several
+#                   space-separated URLs, which are concatenated (e.g. for
+#                   combined subgenome references)
 #   CHROM_PATTERN - Regex to filter chromosomes (optional)
-#   BASE_URL      - Base URL for the Divbrowse instance (optional)
+#   BASE_URL      - Base URL for the Divbrowse API (optional; by default the
+#                   page uses the URL it was served from)
 #
 # Example:
 #   VCF_URL="https://example.com/variants.vcf.gz" \
@@ -44,14 +47,20 @@ echo "VCF_URL:  $VCF_URL"
 echo "GFF3_URL: $GFF3_URL"
 echo ""
 
-# Download GFF3
+# Download GFF3 (concatenating multiple files if several URLs are given)
 echo "Downloading GFF3 annotations..."
-if [[ "$GFF3_URL" == *.gz ]]; then
-    wget -q --show-progress -O genes.gff3.gz "$GFF3_URL"
-    gzip -df genes.gff3.gz
-else
-    wget -q --show-progress -O genes.gff3 "$GFF3_URL"
-fi
+: > genes.gff3
+for url in $GFF3_URL; do
+    if [[ "$url" == *.gz ]]; then
+        wget -q --show-progress -O genes_part.gff3.gz "$url"
+        gzip -dc genes_part.gff3.gz >> genes.gff3
+        rm genes_part.gff3.gz
+    else
+        wget -q --show-progress -O genes_part.gff3 "$url"
+        cat genes_part.gff3 >> genes.gff3
+        rm genes_part.gff3
+    fi
+done
 
 # Download VCF
 echo "Downloading VCF file..."

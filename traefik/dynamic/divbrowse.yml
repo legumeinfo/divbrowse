@@ -1,0 +1,35 @@
+# Traefik dynamic configuration (hot-reloaded; no restart needed)
+
+http:
+  middlewares:
+    add-trailing-slash:
+      redirectRegex:
+        regex: '^https?://[^/]+(/[^/?]+)(\?.*)?$'
+        replacement: '${1}/${2}'
+        permanent: true
+    strip-dataset-prefix:
+      stripPrefixRegex:
+        regex:
+          - '^/[^/]+'
+
+    # Default dataset for each host
+    soybase-root:
+      redirectRegex:
+        regex: '.*'
+        replacement: '/Wm82.gnm6.div.Song_Hyten_2015/'
+    peanutbase-root:
+      redirectRegex:
+        regex: '.*'
+        replacement: '/aradu1_araip1.gnm1.div.Otyama_Kulkarni_2020/'
+
+  routers:
+    soybase-root:
+      rule: 'Host(`divbrowse.soybase.org`) && Path(`/`)'
+      service: noop@internal
+      middlewares:
+        - soybase-root
+    peanutbase-root:
+      rule: 'Host(`divbrowse.peanutbase.org`) && Path(`/`)'
+      service: noop@internal
+      middlewares:
+        - peanutbase-root
